@@ -18,6 +18,7 @@ import {
   User,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { Role } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { Dropdown } from '../ui/Dropdown';
 import { useToast } from '../ui/Toast';
@@ -27,7 +28,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ onOpenMobileMenu }: TopbarProps) {
-  const { user, currentRole, logout } = useAuth();
+  const { user, currentRole, setCurrentRole, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { addToast } = useToast();
@@ -143,8 +144,32 @@ export function Topbar({ onOpenMobileMenu }: TopbarProps) {
         </div>
       </div>
 
-      {/* Zone 3: Notification, Theme Toggle, Profile */}
+      {/* Zone 3: Role Switcher (Multi-role), Notification, Theme Toggle, Profile */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Pemilih Peran Aktif (jika pengguna memiliki lebih dari 1 peran) */}
+        {user && user.roles && user.roles.length > 1 && (
+          <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs">
+            <span className="text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">
+              Peran:
+            </span>
+            <select
+              value={currentRole}
+              onChange={(e) => {
+                const nextRole = e.target.value as Role;
+                setCurrentRole(nextRole);
+                navigate(`/${nextRole}`);
+              }}
+              className="bg-transparent font-semibold text-emerald-900 dark:text-emerald-200 focus:outline-none cursor-pointer text-xs"
+            >
+              {user.roles.map((r) => (
+                <option key={r} value={r} className="text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-900">
+                  {r === 'admin' ? 'Admin' : r === 'guru' ? 'Guru' : 'Siswa'}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Dark Mode Toggle */}
         <button
           type="button"
@@ -162,7 +187,7 @@ export function Topbar({ onOpenMobileMenu }: TopbarProps) {
           onClick={() => {
             addToast({
               title: 'Pusat Pemberitahuan',
-              description: 'Belum ada notifikasi baru. Pengumuman akademik akan muncul di sini (Fase 2).',
+              description: 'Pengumuman dan maklumat madrasah akan muncul di sini.',
               type: 'info',
             });
           }}
@@ -197,29 +222,36 @@ export function Topbar({ onOpenMobileMenu }: TopbarProps) {
           items={[
             {
               id: 'profile-info',
-              label: `${user?.nama} (${user?.nomorInduk})`,
+              label: `${user?.nama} (${user?.identifier || ''})`,
               disabled: true,
             },
             {
               id: 'profile-nav',
-              label: 'Lihat Profil Lengkap',
+              label: 'Lihat Profil & Ganti Sandi',
               onClick: () => {
-                navigate(`/${currentRole}`);
-                addToast({
-                  title: 'Modul Profil',
-                  description: 'Pengaturan profil dan ganti kata sandi wajib akan aktif di Fase 2.',
-                  type: 'info',
-                });
+                navigate('/profil');
               },
             },
+            ...(user && user.roles.length > 1
+              ? user.roles
+                  .filter((r) => r !== currentRole)
+                  .map((r) => ({
+                    id: `switch-${r}`,
+                    label: `Ganti ke Tampilan ${r === 'admin' ? 'Admin' : r === 'guru' ? 'Guru' : 'Siswa'}`,
+                    onClick: () => {
+                      setCurrentRole(r);
+                      navigate(`/${r}`);
+                    },
+                  }))
+              : []),
             {
               id: 'logout-btn',
-              label: 'Keluar (Sesi Demo)',
+              label: 'Keluar dari LMS',
               icon: <LogOut className="w-3.5 h-3.5" />,
               destructive: true,
               dividerBefore: true,
-              onClick: () => {
-                logout();
+              onClick: async () => {
+                await logout();
                 navigate('/login');
               },
             },

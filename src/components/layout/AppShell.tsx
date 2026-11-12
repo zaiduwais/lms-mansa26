@@ -8,7 +8,6 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { MobileDrawer, SiswaBottomNav } from './MobileNav';
-import { DevRoleSwitcher } from '../common/DevRoleSwitcher';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
 
@@ -48,9 +47,6 @@ export function AppShell() {
 
       {/* Mobile Bottom Navigation (Only for Siswa role on small screens) */}
       {currentRole === 'siswa' && <SiswaBottomNav />}
-
-      {/* Dev Role Switcher for Phase 1 verification */}
-      <DevRoleSwitcher />
     </div>
   );
 }

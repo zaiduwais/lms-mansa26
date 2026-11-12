@@ -24,11 +24,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isCollapsed, onToggleCollapse, className }: SidebarProps) {
-  const { currentRole, user } = useAuth();
+  const { currentRole, user, madrasahSettings } = useAuth();
   const { main: navItems, waliKelas: waliNavItems } = getNavItemsForRole(
     currentRole,
     user?.isWaliKelas
   );
+
+  const namaSingkat = madrasahSettings.namaSingkat || MADRASAH_CONFIG.singkatan;
+  const logoUrl = madrasahSettings.logoDataUrl;
 
   return (
     <aside
@@ -42,12 +45,20 @@ export function Sidebar({ isCollapsed, onToggleCollapse, className }: SidebarPro
       <div className="h-16 px-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
         {!isCollapsed ? (
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-white flex items-center justify-center font-bold shadow-xs shrink-0 border border-emerald-600/30">
-              <BookMarked className="w-5 h-5 text-emerald-100" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-white flex items-center justify-center font-bold shadow-xs shrink-0 border border-emerald-600/30 overflow-hidden">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={namaSingkat}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <BookMarked className="w-5 h-5 text-emerald-100" />
+              )}
             </div>
             <div className="min-w-0">
               <span className="block text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                {MADRASAH_CONFIG.singkatan}
+                {namaSingkat}
               </span>
               <span className="block text-[10px] font-medium text-emerald-700 dark:text-emerald-400 truncate flex items-center gap-1">
                 <HeartHandshake className="w-3 h-3 text-amber-600 shrink-0" />
@@ -58,10 +69,18 @@ export function Sidebar({ isCollapsed, onToggleCollapse, className }: SidebarPro
         ) : (
           <div className="mx-auto">
             <div
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-white flex items-center justify-center font-bold shadow-xs border border-emerald-600/30"
-              title={MADRASAH_CONFIG.nama}
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-white flex items-center justify-center font-bold shadow-xs border border-emerald-600/30 overflow-hidden"
+              title={madrasahSettings.namaResmi || MADRASAH_CONFIG.nama}
             >
-              <BookMarked className="w-5 h-5 text-emerald-100" />
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={namaSingkat}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <BookMarked className="w-5 h-5 text-emerald-100" />
+              )}
             </div>
           </div>
         )}

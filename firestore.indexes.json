@@ -1,0 +1,55 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "studentEnrollments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tahunAjaranId", "order": "ASCENDING" },
+        { "fieldPath": "rombelId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "curriculumSubjects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tahunAjaranId", "order": "ASCENDING" },
+        { "fieldPath": "tingkat", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "teachingAssignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "semesterId", "order": "ASCENDING" },
+        { "fieldPath": "rombelId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "teachingAssignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "semesterId", "order": "ASCENDING" },
+        { "fieldPath": "guruUid", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "schedules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "semesterId", "order": "ASCENDING" },
+        { "fieldPath": "rombelId", "order": "ASCENDING" },
+        { "fieldPath": "hari", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "schedules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "semesterId", "order": "ASCENDING" },
+        { "fieldPath": "guruUid", "order": "ASCENDING" },
+        { "fieldPath": "hari", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -12,7 +12,12 @@ import { AppShell } from './components/layout/AppShell';
 
 // Pages
 import { LoginPage } from './pages/auth/LoginPage';
+import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
+import { ProfilePage } from './pages/profile/ProfilePage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminPenggunaPage } from './pages/admin/AdminPenggunaPage';
+import { AdminPengaturanPage } from './pages/admin/AdminPengaturanPage';
+import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage';
 import { GuruDashboard } from './pages/guru/GuruDashboard';
 import { SiswaDashboard } from './pages/siswa/SiswaDashboard';
 import { PlaceholderPage } from './pages/PlaceholderPage';
@@ -20,10 +25,24 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { AccessDeniedPage } from './pages/AccessDeniedPage';
 
 function RootRedirect() {
-  const { currentRole, isAuthenticated } = useAuth();
-  if (!isAuthenticated) {
+  const { currentRole, isAuthenticated, isLoading, user } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="w-8 h-8 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
+
+  if (user.mustChangePassword) {
+    return <Navigate to="/ganti-sandi" replace />;
+  }
+
   return <Navigate to={`/${currentRole}`} replace />;
 }
 
@@ -34,9 +53,30 @@ export default function App() {
         <ToastProvider>
           <BrowserRouter>
             <Routes>
-              {/* Public Auth Route */}
+              {/* Public Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/akses-ditolak" element={<AccessDeniedPage />} />
+
+              {/* Rute Wajib Ganti Sandi (Login Pertama) */}
+              <Route
+                path="/ganti-sandi"
+                element={
+                  <ProtectedRoute>
+                    <ChangePasswordPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Rute Profil Pengguna (Dapat Diakses Seluruh Peran) */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AppShell />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/profil" element={<ProfilePage />} />
+              </Route>
 
               {/* Protected App Shell for Admin */}
               <Route
@@ -47,7 +87,10 @@ export default function App() {
                 }
               >
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/pengguna" element={<PlaceholderPage />} />
+                <Route path="/admin/pengguna" element={<AdminPenggunaPage />} />
+                <Route path="/admin/pengaturan" element={<AdminPengaturanPage />} />
+                <Route path="/admin/pengaturan-madrasah" element={<AdminPengaturanPage />} />
+                <Route path="/admin/log-audit" element={<AdminAuditLogPage />} />
                 <Route path="/admin/tahun-ajaran" element={<PlaceholderPage />} />
                 <Route path="/admin/kelas-rombel" element={<PlaceholderPage />} />
                 <Route path="/admin/mata-pelajaran" element={<PlaceholderPage />} />
@@ -56,8 +99,6 @@ export default function App() {
                 <Route path="/admin/absensi" element={<PlaceholderPage />} />
                 <Route path="/admin/pengumuman" element={<PlaceholderPage />} />
                 <Route path="/admin/laporan" element={<PlaceholderPage />} />
-                <Route path="/admin/pengaturan-madrasah" element={<PlaceholderPage />} />
-                <Route path="/admin/log-audit" element={<PlaceholderPage />} />
               </Route>
 
               {/* Protected App Shell for Guru */}
@@ -103,7 +144,7 @@ export default function App() {
                 <Route path="/siswa/kehadiran" element={<PlaceholderPage />} />
                 <Route path="/siswa/forum" element={<PlaceholderPage />} />
                 <Route path="/siswa/pesan" element={<PlaceholderPage />} />
-                <Route path="/siswa/profil" element={<PlaceholderPage />} />
+                <Route path="/siswa/profil" element={<ProfilePage />} />
               </Route>
 
               {/* Root and Fallback */}

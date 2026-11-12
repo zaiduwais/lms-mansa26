@@ -27,12 +27,15 @@ interface MobileNavProps {
 }
 
 export function MobileDrawer({ isOpen, onClose }: MobileNavProps) {
-  const { currentRole, user } = useAuth();
+  const { currentRole, user, madrasahSettings } = useAuth();
   const location = useLocation();
   const { main: navItems, waliKelas: waliNavItems } = getNavItemsForRole(
     currentRole,
     user?.isWaliKelas
   );
+
+  const namaSingkat = madrasahSettings.namaSingkat || MADRASAH_CONFIG.singkatan;
+  const logoUrl = madrasahSettings.logoDataUrl;
 
   // Close drawer upon route change
   useEffect(() => {
@@ -67,12 +70,20 @@ export function MobileDrawer({ isOpen, onClose }: MobileNavProps) {
         {/* Header */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-white flex items-center justify-center font-bold">
-              <BookMarked className="w-4 h-4 text-emerald-100" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-white flex items-center justify-center font-bold overflow-hidden">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={namaSingkat}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <BookMarked className="w-4 h-4 text-emerald-100" />
+              )}
             </div>
             <div>
               <span className="block text-xs font-bold text-slate-900 dark:text-slate-100">
-                {MADRASAH_CONFIG.singkatan}
+                {namaSingkat}
               </span>
               <span className="block text-[10px] text-emerald-700 dark:text-emerald-400 flex items-center gap-1 font-medium">
                 <HeartHandshake className="w-3 h-3 text-amber-600" />

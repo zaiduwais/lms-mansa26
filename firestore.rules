@@ -1,0 +1,157 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny untuk semua dokumen yang tidak didefinisikan secara eksplisit
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isExistingUser(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function isActive() {
+      return isSignedIn() &&
+        (request.auth.token.email == 'zaid.uwais.alq@gmail.com' ||
+         (isExistingUser(request.auth.uid) && userDoc(request.auth.uid).aktif == true));
+    }
+
+    function hasRole(r) {
+      return isActive() &&
+        userDoc(request.auth.uid).roles.hasAny([r]);
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'zaid.uwais.alq@gmail.com' ||
+        hasRole('admin')
+      );
+    }
+
+    // =========================================================================
+    // 1. Koleksi users
+    // =========================================================================
+    match /users/{userId} {
+      // Pengguna membaca profilnya sendiri, atau admin membaca semua profil
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+
+      // Izinkan pembuatan profil oleh Admin atau oleh pengguna pemilik UID
+      allow create: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+
+      // Penghapusan hanya oleh Admin
+      allow delete: if isAdmin();
+
+      // Admin bebas mengubah profil, atau pengguna mengubah field non-kritis miliknya sendiri
+      allow update: if isAdmin() || (
+        isSignedIn() && request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'roles', 'aktif', 'identifier', 'isWaliKelas', 'createdAt', 'createdBy'
+        ])
+      );
+    }
+
+    // =========================================================================
+    // 2. Koleksi madrasahSettings
+    // =========================================================================
+    match /madrasahSettings/{settingId} {
+      allow get: if settingId == 'public' || isAdmin();
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // 3. Koleksi auditLogs (Append-Only)
+    // =========================================================================
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if (
+        (isSignedIn() && request.resource.data.aktorUid == request.auth.uid) ||
+        (request.resource.data.aktorUid == 'anonymous')
+      ) && request.resource.data.keys().hasAll([
+        'aksi', 'aktorUid', 'aktorNama', 'targetId', 'targetTipe', 'ringkasan'
+      ]);
+      allow update, delete: if false;
+    }
+
+    // =========================================================================
+    // 4. Koleksi Master Akademik (academicYears, semesters, classes, subjectGroups,
+    //    subjects, curriculumSubjects, timeSlots, teachingAssignments, schedules)
+    //    - BACA oleh semua pengguna login dan aktif
+    //    - TULIS hanya oleh Administrator aktif
+    // =========================================================================
+    match /academicYears/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /semesters/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /classes/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /subjectGroups/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /subjects/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /curriculumSubjects/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /timeSlots/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /teachingAssignments/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    match /schedules/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    // =========================================================================
+    // 5. Penempatan Siswa (studentEnrollments)
+    //    - Admin baca & tulis semua
+    //    - Siswa hanya membaca data penempatan miliknya sendiri
+    // =========================================================================
+    match /studentEnrollments/{id} {
+      allow get: if isAdmin() || (isSignedIn() && resource.data.siswaUid == request.auth.uid);
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // =========================================================================
+    // 6. Pencegahan Bentrok Jadwal (scheduleLocks)
+    //    - Kunci deterministik hanya dikelola oleh Admin
+    // =========================================================================
+    match /scheduleLocks/{id} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

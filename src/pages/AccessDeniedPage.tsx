@@ -44,10 +44,10 @@ export function AccessDeniedPage() {
             Identitas Aktif: {user?.nama}
           </p>
           <p className="text-[11px] text-slate-500">
-            Nomor Induk: {user?.nomorInduk} · {MADRASAH_CONFIG.singkatan}
+            Nomor Induk: {user?.identifier} · {MADRASAH_CONFIG.singkatan}
           </p>
           <p className="text-[10px] text-amber-700 dark:text-amber-400 italic pt-1">
-            * Pada mode pengembangan (Fase 1), Anda dapat mengganti peran via Dev Role Switcher di pojok kiri bawah.
+            * Hubungi Administrator jika akun Anda memerlukan penyesuaian hak akses atau peran tambahan.
           </p>
         </div>
 

@@ -1,0 +1,320 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Dokumen profil pengguna madrasah (admin, guru, siswa).",
+      "type": "object",
+      "properties": {
+        "identifier": {
+          "type": "string",
+          "description": "Nomor identitas unik (NISN untuk siswa, NIP atau NPK untuk guru, atau ID admin)",
+          "minLength": 4,
+          "maxLength": 32
+        },
+        "tipeIdentitas": {
+          "type": "string",
+          "description": "Jenis identitas: NISN, NIP, atau NPK",
+          "enum": ["NISN", "NIP", "NPK"]
+        },
+        "nama": {
+          "type": "string",
+          "description": "Nama lengkap pengguna",
+          "minLength": 2,
+          "maxLength": 128
+        },
+        "roles": {
+          "type": "array",
+          "description": "Daftar peran yang diemban pengguna",
+          "items": {
+            "type": "string",
+            "enum": ["admin", "guru", "siswa"]
+          }
+        },
+        "jenisKelamin": {
+          "type": "string",
+          "description": "Jenis kelamin pengguna (L/P)",
+          "enum": ["L", "P"]
+        },
+        "nomorHp": {
+          "type": "string",
+          "description": "Nomor WhatsApp atau ponsel pengguna (privasi terbatas)"
+        },
+        "isWaliKelas": {
+          "type": "boolean",
+          "description": "Menandai apakah guru aktif sebagai wali kelas"
+        },
+        "kelasWali": {
+          "type": "string",
+          "description": "Nama rombel binaan wali kelas (opsional)",
+          "maxLength": 32
+        },
+        "mapelPengampu": {
+          "type": "array",
+          "description": "Daftar mata pelajaran yang diampu oleh guru (opsional)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "aktif": {
+          "type": "boolean",
+          "description": "Status aktifasi akun"
+        },
+        "mustChangePassword": {
+          "type": "boolean",
+          "description": "Wajib ganti sandi pada login pertama"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Waktu pembuatan akun"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID pembuat akun"
+        },
+        "lastLoginAt": {
+          "type": "string",
+          "description": "Waktu login terakhir"
+        }
+      },
+      "required": ["identifier", "nama", "roles", "aktif", "mustChangePassword"]
+    },
+    "AcademicYear": {
+      "title": "AcademicYear",
+      "description": "Tahun ajaran madrasah (contoh: 2026/2027).",
+      "type": "object",
+      "properties": {
+        "nama": { "type": "string", "description": "Nama tahun ajaran, contoh 2026/2027" },
+        "tanggalMulai": { "type": "string", "description": "Tanggal mulai tahun ajaran" },
+        "tanggalSelesai": { "type": "string", "description": "Tanggal selesai tahun ajaran" },
+        "aktif": { "type": "boolean", "description": "Menandai tahun ajaran aktif (hanya satu yang aktif)" },
+        "diarsipkan": { "type": "boolean", "description": "Status arsip tahun ajaran" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["nama", "tanggalMulai", "tanggalSelesai", "aktif"]
+    },
+    "Semester": {
+      "title": "Semester",
+      "description": "Semester dalam tahun ajaran (Gasal / Genap).",
+      "type": "object",
+      "properties": {
+        "tahunAjaranId": { "type": "string", "description": "ID Tahun Ajaran induk" },
+        "tahunAjaranNama": { "type": "string", "description": "Nama Tahun Ajaran induk" },
+        "jenis": { "type": "string", "enum": ["gasal", "genap"] },
+        "nama": { "type": "string", "description": "Label semester (contoh: Gasal 2026/2027)" },
+        "tanggalMulai": { "type": "string" },
+        "tanggalSelesai": { "type": "string" },
+        "aktif": { "type": "boolean", "description": "Hanya satu semester aktif di sistem" }
+      },
+      "required": ["tahunAjaranId", "jenis", "tanggalMulai", "tanggalSelesai", "aktif"]
+    },
+    "Rombel": {
+      "title": "Rombel",
+      "description": "Rombongan Belajar per Tahun Ajaran (Tingkat X, XI, XII tanpa jurusan).",
+      "type": "object",
+      "properties": {
+        "tahunAjaranId": { "type": "string" },
+        "tingkat": { "type": "string", "enum": ["X", "XI", "XII"] },
+        "nama": { "type": "string", "description": "Nama rombel, contoh: X-1, XI-B" },
+        "kapasitas": { "type": "number", "description": "Kapasitas maksimal siswa" },
+        "waliKelasId": { "type": "string", "description": "UID guru wali kelas" },
+        "waliKelasNama": { "type": "string" },
+        "waliKelasNip": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["tahunAjaranId", "tingkat", "nama"]
+    },
+    "StudentEnrollment": {
+      "title": "StudentEnrollment",
+      "description": "Penempatan siswa ke rombel per tahun ajaran dengan deterministic ID {tahunAjaranId}_{siswaUid}.",
+      "type": "object",
+      "properties": {
+        "tahunAjaranId": { "type": "string" },
+        "siswaUid": { "type": "string" },
+        "siswaIdentifier": { "type": "string" },
+        "siswaNama": { "type": "string" },
+        "rombelId": { "type": "string" },
+        "rombelNama": { "type": "string" },
+        "tingkat": { "type": "string", "enum": ["X", "XI", "XII"] },
+        "tanggalPenempatan": { "type": "string" }
+      },
+      "required": ["tahunAjaranId", "siswaUid", "rombelId", "tingkat"]
+    },
+    "SubjectGroup": {
+      "title": "SubjectGroup",
+      "description": "Kelompok mata pelajaran (Umum, PAI, Bahasa Arab, Mulok, dll).",
+      "type": "object",
+      "properties": {
+        "nama": { "type": "string" },
+        "urutan": { "type": "number" }
+      },
+      "required": ["nama", "urutan"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "Katalog mata pelajaran madrasah yang dinamis diatur admin.",
+      "type": "object",
+      "properties": {
+        "kode": { "type": "string", "description": "Kode unik mapel, contoh: PAI-QH" },
+        "nama": { "type": "string", "description": "Nama mata pelajaran" },
+        "namaArab": { "type": "string", "description": "Teks Arab opsional" },
+        "kelompokId": { "type": "string" },
+        "kelompokNama": { "type": "string" },
+        "urutan": { "type": "number" },
+        "aktif": { "type": "boolean" }
+      },
+      "required": ["kode", "nama", "kelompokId", "aktif"]
+    },
+    "CurriculumSubject": {
+      "title": "CurriculumSubject",
+      "description": "Mata pelajaran yang diajarkan per tahun ajaran dan tingkat kelas.",
+      "type": "object",
+      "properties": {
+        "tahunAjaranId": { "type": "string" },
+        "tingkat": { "type": "string", "enum": ["X", "XI", "XII"] },
+        "mapelId": { "type": "string" },
+        "mapelKode": { "type": "string" },
+        "mapelNama": { "type": "string" },
+        "mapelNamaArab": { "type": "string" },
+        "kelompokNama": { "type": "string" },
+        "jamPerPekan": { "type": "number" }
+      },
+      "required": ["tahunAjaranId", "tingkat", "mapelId", "jamPerPekan"]
+    },
+    "TeacherAssignment": {
+      "title": "TeacherAssignment",
+      "description": "Plotting penugasan guru mengampu mapel pada rombel tertentu.",
+      "type": "object",
+      "properties": {
+        "tahunAjaranId": { "type": "string" },
+        "rombelId": { "type": "string" },
+        "rombelNama": { "type": "string" },
+        "tingkat": { "type": "string", "enum": ["X", "XI", "XII"] },
+        "mapelId": { "type": "string" },
+        "mapelNama": { "type": "string" },
+        "guruUid": { "type": "string" },
+        "guruNama": { "type": "string" },
+        "guruIdentifier": { "type": "string" }
+      },
+      "required": ["tahunAjaranId", "rombelId", "mapelId", "guruUid"]
+    },
+    "TimeSlot": {
+      "title": "TimeSlot",
+      "description": "Pengaturan jam pelajaran madrasah (jam ke-1, jam ke-2, istirahat).",
+      "type": "object",
+      "properties": {
+        "urutan": { "type": "number" },
+        "jamMulai": { "type": "string", "description": "Contoh: 07:15" },
+        "jamSelesai": { "type": "string", "description": "Contoh: 08:00" },
+        "isIstirahat": { "type": "boolean" },
+        "label": { "type": "string" }
+      },
+      "required": ["urutan", "jamMulai", "jamSelesai", "isIstirahat"]
+    },
+    "Schedule": {
+      "title": "Schedule",
+      "description": "Jadwal pelajaran per hari, rombel, dan jam.",
+      "type": "object",
+      "properties": {
+        "tahunAjaranId": { "type": "string" },
+        "semesterId": { "type": "string" },
+        "rombelId": { "type": "string" },
+        "hari": { "type": "string", "enum": ["senin", "selasa", "rabu", "kamis", "jumat", "sabtu"] },
+        "timeSlotId": { "type": "string" },
+        "jamKe": { "type": "number" },
+        "jamMulai": { "type": "string" },
+        "jamSelesai": { "type": "string" },
+        "mapelId": { "type": "string" },
+        "mapelNama": { "type": "string" },
+        "guruUid": { "type": "string" },
+        "guruNama": { "type": "string" },
+        "ruangan": { "type": "string" }
+      },
+      "required": ["tahunAjaranId", "semesterId", "rombelId", "hari", "timeSlotId", "mapelId", "guruUid"]
+    },
+    "MadrasahSettings": {
+      "title": "MadrasahSettings",
+      "description": "Pengaturan identitas publik madrasah.",
+      "type": "object",
+      "properties": {
+        "namaResmi": { "type": "string", "minLength": 3, "maxLength": 150 },
+        "namaSingkat": { "type": "string", "minLength": 2, "maxLength": 50 },
+        "alamat": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "logoDataUrl": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["namaResmi", "namaSingkat", "alamat"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Catatan jejak aktivitas dan keamanan sistem LMS.",
+      "type": "object",
+      "properties": {
+        "aksi": { "type": "string" },
+        "aktorUid": { "type": "string" },
+        "aktorNama": { "type": "string", "maxLength": 128 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "targetTipe": { "type": "string" },
+        "ringkasan": { "type": "string", "maxLength": 300 },
+        "waktu": { "type": "string" },
+        "userAgent": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["aksi", "aktorUid", "aktorNama", "targetId", "targetTipe", "ringkasan"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Akun dan profil madrasah"
+    },
+    "/academicYears/{yearId}": {
+      "schema": "AcademicYear",
+      "description": "Tahun ajaran"
+    },
+    "/semesters/{semesterId}": {
+      "schema": "Semester",
+      "description": "Semester akademik"
+    },
+    "/rombel/{rombelId}": {
+      "schema": "Rombel",
+      "description": "Rombongan belajar"
+    },
+    "/studentEnrollments/{enrollmentId}": {
+      "schema": "StudentEnrollment",
+      "description": "Penempatan siswa per tahun ajaran"
+    },
+    "/subjectGroups/{groupId}": {
+      "schema": "SubjectGroup",
+      "description": "Kelompok mata pelajaran"
+    },
+    "/subjects/{subjectId}": {
+      "schema": "Subject",
+      "description": "Katalog mata pelajaran"
+    },
+    "/curriculumSubjects/{curriculumId}": {
+      "schema": "CurriculumSubject",
+      "description": "Struktur kurikulum per tingkat dan tahun ajaran"
+    },
+    "/teacherAssignments/{assignmentId}": {
+      "schema": "TeacherAssignment",
+      "description": "Plotting penugasan guru-mapel-rombel"
+    },
+    "/timeSlots/{slotId}": {
+      "schema": "TimeSlot",
+      "description": "Pengaturan jam pelajaran"
+    },
+    "/schedules/{scheduleId}": {
+      "schema": "Schedule",
+      "description": "Jadwal pelajaran"
+    },
+    "/madrasahSettings/{settingId}": {
+      "schema": "MadrasahSettings",
+      "description": "Pengaturan identitas publik madrasah"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Catatan audit log"
+    }
+  }
+}
